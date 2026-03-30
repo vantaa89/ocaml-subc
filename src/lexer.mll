@@ -16,9 +16,8 @@ let () =
   ; ("if", IF)
   ; ("NULL", SYM_NULL)
   ; ("return", RETURN)
-  ; ("int", TYPE) 
-  ; ("char", TYPE) 
-  ; ("type", TYPE) 
+  ; ("int", INT) 
+  ; ("char", CHAR) 
   ; ("struct", STRUCT) 
   ; ("while", WHILE)
   ]
@@ -46,9 +45,9 @@ rule token = parse
   | "->" { STRUCTOP }
   | "++" { INCOP }
   | "--" { DECOP }
-  | "<=" | ">=" | ">" | "<" { RELOP }
-  | "==" { EQUOP }
-  | "!=" { EQUOP }
+  | "<=" | ">=" | ">" | "<" as op { RELOP op }
+  | "==" as op { EQUOP op }
+  | "!=" as op { EQUOP op }
   | "&&" { LOGICAL_AND }
   | "||" { LOGICAL_OR }
   | "(" { LPAREN }
@@ -68,7 +67,7 @@ rule token = parse
   | "&" { AMP }
   | ";" { SEMI }
   | "=" { ASSIGN }
-  | eof { raise Eof }
+  | eof { EOF }
   | _ { token lexbuf }
 
 and comment depth = parse

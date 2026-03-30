@@ -1,9 +1,8 @@
 let _ = 
-  (* ignore (Parsing.set_trace true); *)    (* debug *)
-  try 
-    let lexbuf = Lexing.from_channel stdin in
-    while true do
-      Parser.program Lexer.token lexbuf;
-    done
-  with Lexer.Eof ->
-    exit 0
+  let lexbuf = Lexing.from_channel stdin in
+  let ast = Parser.program Lexer.token lexbuf in
+  ast
+  |> Ast.sexp_of_program
+  |> Sexplib.Sexp.to_string_hum
+  |> print_endline
+  
