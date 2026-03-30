@@ -1,0 +1,13 @@
+(cram
+ (deps
+  %{bin:sh}
+  %{exe:../../src/main.exe}
+  arrays.c
+  basic_types.c
+  comprehensive.c
+  control_flow.c
+  functions.c
+  invalid_features.c
+  nested_comments.c
+  pointers.c
+  structs.c))

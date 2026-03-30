@@ -1,5 +1,0 @@
-(cram
- (deps
-  %{bin:sh}
-  %{exe:../../src/main.exe}
-  input.c))

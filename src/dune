@@ -1,9 +1,10 @@
 (ocamllex lexer)
+(ocamlyacc parser)
 
 (library
  (name subc)
  (wrapped false)
- (modules lexer)
+ (modules lexer parser)
  (libraries base stdio sexplib)
  (preprocess (pps ppx_jane)))
 

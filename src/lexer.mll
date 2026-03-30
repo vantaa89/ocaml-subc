@@ -1,17 +1,29 @@
 {
-open Sexplib.Std
-
-type token =
-  | Keyword of string
-  | Ident of string
-  | Integer of string
-  | Float of string
-  | Operator of string
-  | Eof [@@deriving sexp]
+open Base
+open Parser
 
 exception Lexical_error of string
+exception Eof
 
-let pending = Queue.create ()
+let keywords = Hashtbl.create (module String)
+
+let () = 
+  List.iter 
+  [ ("break", BREAK)
+  ; ("continue", CONTINUE)
+  ; ("else", ELSE)
+  ; ("for", FOR)
+  ; ("if", IF)
+  ; ("NULL", SYM_NULL)
+  ; ("return", RETURN)
+  ; ("int", TYPE) 
+  ; ("char", TYPE) 
+  ; ("type", TYPE) 
+  ; ("struct", STRUCT) 
+  ; ("while", WHILE)
+  ]
+  ~f:(fun (name, tok) -> Hashtbl.add_exn keywords ~key:name ~data:tok)
+
 }
 
 let letter = ['A'-'Z' 'a'-'z' '_']
@@ -22,49 +34,41 @@ let float = digit+ '.' digit* (['e' 'E'] ['+' '-']? digit+)?
 let integer = '0' | ['1'-'9'] digit*
 
 rule token = parse
-  | "" {
-      match Queue.take_opt pending with
-      | Some token -> token
-      | None -> read_token lexbuf
-    }
-
-and read_token = parse
   | whitespace { token lexbuf }
   | '\n' { token lexbuf }
   | "/*" { comment 1 lexbuf }
-  | "break" { Keyword "break" }
-  | "char" { Keyword "char" }
-  | "continue" { Keyword "continue" }
-  | "else" { Keyword "else" }
-  | "float" { Keyword "float" }
-  | "for" { Keyword "for" }
-  | "if" { Keyword "if" }
-  | "int" { Keyword "int" }
-  | "return" { Keyword "return" }
-  | "struct" { Keyword "struct" }
-  | "while" { Keyword "while" }
-  | "NULL" { Keyword "NULL" }
-  | identifier as text { Ident text }
-  | integer as value ".." {
-      Queue.add (Operator "..") pending;
-      Integer value
-    }
-  | float as text { Float text }
-  | integer as text { Integer text }
-  | "->" as text { Operator text }
-  | ".." as text { Operator text }
-  | "++" as text { Operator text }
-  | "--" as text { Operator text }
-  | "<=" as text { Operator text }
-  | ">=" as text { Operator text }
-  | "==" as text { Operator text }
-  | "!=" as text { Operator text }
-  | "&&" as text { Operator text }
-  | "||" as text { Operator text }
-  | ['(' ')' '[' ']' '{' '}' '.' ',' '!' '*' '/' '%' '+' '-' '<' '>' '&' ';' '='] as ch {
-      Operator (String.make 1 ch)
-    }
-  | eof { Eof }
+  | identifier as text { 
+    match Hashtbl.find keywords text with
+    | Some keyword -> keyword
+    | None -> ID text
+   }
+  | integer as text { INTEGER_CONST (Int.of_string text) }
+  | "->" { STRUCTOP }
+  | "++" { INCOP }
+  | "--" { DECOP }
+  | "<=" | ">=" | ">" | "<" { RELOP }
+  | "==" { EQUOP }
+  | "!=" { EQUOP }
+  | "&&" { LOGICAL_AND }
+  | "||" { LOGICAL_OR }
+  | "(" { LPAREN }
+  | ")" { RPAREN }
+  | "[" { LBRACKET }
+  | "]" { RBRACKET }
+  | "{" { LBRACE }
+  | "}" { RBRACE }
+  | "." { DOT }
+  | "," { COMMA }
+  | "!" { BANG }
+  | "*" { STAR }
+  | "/" { SLASH }
+  | "%" { PERCENT }
+  | "+" { PLUS }
+  | "-" { MINUS }
+  | "&" { AMP }
+  | ";" { SEMI }
+  | "=" { ASSIGN }
+  | eof { raise Eof }
   | _ { token lexbuf }
 
 and comment depth = parse
