@@ -4,8 +4,9 @@
 (library
  (name subc)
  (wrapped false)
- (modules lexer parser type_system)
+ (modules lexer parser scope type_system)
  (libraries base stdio sexplib)
+ (flags (:standard -warn-error -37))
  (preprocess (pps ppx_jane)))
 
 (executable
