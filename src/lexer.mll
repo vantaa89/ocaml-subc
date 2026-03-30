@@ -1,11 +1,13 @@
 {
+open Sexplib.Std
+
 type token =
   | Keyword of string
   | Ident of string
   | Integer of string
   | Float of string
   | Operator of string
-  | Eof
+  | Eof [@@deriving sexp]
 
 exception Lexical_error of string
 

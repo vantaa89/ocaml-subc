@@ -1,12 +1,5 @@
-(executable
- (name run_tests)
- (modules run_tests)
- (libraries unix)
- (preprocess (pps ppx_jane)))
-
-(rule
- (alias runtest)
+(cram
  (deps
-  (source_tree fixtures)
-  %{exe:../../src/lex_main.exe})
- (action (run %{exe:run_tests.exe} fixtures %{exe:../../src/lex_main.exe})))
+  %{bin:sh}
+  %{exe:../../src/main.exe}
+  input.c))

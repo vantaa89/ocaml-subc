@@ -1,7 +1,13 @@
 (ocamllex lexer)
 
-(executable
- (name lex_main)
- (modules lexer lex_main)
- (libraries base stdio)
+(library
+ (name subc)
+ (wrapped false)
+ (modules lexer)
+ (libraries base stdio sexplib)
  (preprocess (pps ppx_jane)))
+
+(executable
+ (name main)
+ (modules main)
+ (libraries base stdio subc))
