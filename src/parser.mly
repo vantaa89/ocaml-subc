@@ -2,8 +2,11 @@
 
 %{
 
-let reduce_log s = Stdlib.print_endline s
+open Environment
+open Type_system
 
+let reduce_log _ = () (* Stdlib.print_endline s *)
+let _ = empty
 %}
 
 
@@ -18,7 +21,8 @@ let reduce_log s = Stdlib.print_endline s
 %right BANG INCOP DECOP
 %left DOT STRUCTOP LPAREN RPAREN LBRACKET RBRACKET
 
-%token            TYPE STRUCT
+%token            INT CHAR
+%token            STRUCT
 %token            LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE
 %token            DOT COMMA BANG STAR SLASH PERCENT PLUS MINUS
 %token            AMP SEMI ASSIGN
@@ -36,6 +40,7 @@ let reduce_log s = Stdlib.print_endline s
 
 %start program
 %type<unit>  program
+%type<t>  struct_specifier
 
 %%
 
@@ -56,8 +61,9 @@ ext_def
   ;
 
 type_specifier
-  : TYPE                                                 { reduce_log "type_specifier->TYPE" }
-  | struct_specifier                                     { reduce_log "type_specifier->struct_specifier" }
+  : INT                                                  { reduce_log "type_specifier->TYPE"; Int }
+  | CHAR                                                 { reduce_log "type_specifier->TYPE"; Char }
+  | struct_specifier                                     { reduce_log "type_specifier->struct_specifier"; $1 }
   ;
 
 struct_specifier
