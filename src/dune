@@ -3,4 +3,5 @@
 (executable
  (name lex_main)
  (modules lexer lex_main)
- (libraries base stdio))
+ (libraries base stdio)
+ (preprocess (pps ppx_jane)))

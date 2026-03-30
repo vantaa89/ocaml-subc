@@ -1,7 +1,8 @@
 (executable
  (name run_tests)
  (modules run_tests)
- (libraries unix))
+ (libraries unix)
+ (preprocess (pps ppx_jane)))
 
 (rule
  (alias runtest)
