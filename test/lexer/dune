@@ -1,0 +1,11 @@
+(executable
+ (name run_tests)
+ (modules run_tests)
+ (libraries unix))
+
+(rule
+ (alias runtest)
+ (deps
+  (source_tree fixtures)
+  %{exe:../../src/lex_main.exe})
+ (action (run %{exe:run_tests.exe} fixtures %{exe:../../src/lex_main.exe})))
