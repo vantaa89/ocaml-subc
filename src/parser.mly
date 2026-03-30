@@ -40,7 +40,7 @@ let reduce_log s = Stdlib.print_endline s
 %%
 
 program : 
-    ext_def_list { reduce_log "program->ext_def_list" }
+    ext_def_list                                         { reduce_log "program->ext_def_list" }
 
 ext_def_list
   : ext_def_list ext_def                                 { reduce_log "ext_def_list->ext_def_list ext_def" }
