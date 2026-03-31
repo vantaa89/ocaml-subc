@@ -4,8 +4,6 @@ exception No_local_scope
 exception Duplicate_declaration of string
 exception Unbound_symbol of string
 
-module StringMap = Map.M(String)
-
 type decl =
   | Var of
       { type_ : Type_system.t
@@ -18,53 +16,49 @@ type decl =
       { return_type : Type_system.t
       ; params : (string * Type_system.t) list
       }
-  | Struct of Type_system.struct_entry list 
+  | Struct of Type_system.struct_entry list
 
-type scope = decl StringMap.t
+type scope = (string, decl, String.comparator_witness) Map.t
 
 type t = {
-  global: scope;
-  locals: scope list    (* Head is the current (deepest) scope *)
+  global : scope;
+  locals : scope list;
 }
 
-let empty = { global=Map.empty (module String); locals=[] }
+let empty = {
+  global = Map.empty (module String);
+  locals = [];
+}
 
-let declare_global t name decl = 
-  { t with global = Map.set t.global ~key:name ~data:decl }
+let declare_global name decl env =
+  { env with global = Map.set env.global ~key:name ~data:decl }
 
-let declare_local t name decl =     (* TODO: change return type to Result.t? *)
-  match t.locals with 
+let declare_local name decl env =
+  match env.locals with
   | [] -> raise No_local_scope
-  | hd::tl ->
-    if Map.mem hd name then raise (Duplicate_declaration name)
-    else
-    let new_hd = Map.set hd ~key:name ~data:decl in
-    {t with locals = new_hd::tl }
-
-let fetch_decl t name = 
-  let rec fetch_from_scopes = function
-  | [] -> None
   | hd :: tl ->
-    (match Map.find hd name with
-     | Some decl -> Some decl
-     | None -> fetch_from_scopes tl)
+    if Map.mem hd name then raise (Duplicate_declaration name);
+    { env with locals = Map.set hd ~key:name ~data:decl :: tl }
+
+let fetch_decl name env =
+  let rec fetch_from_scopes = function
+    | [] -> None
+    | hd :: tl ->
+      (match Map.find hd name with
+       | Some decl -> Some decl
+       | None -> fetch_from_scopes tl)
   in
-  match fetch_from_scopes t.locals with
+  match fetch_from_scopes env.locals with
   | Some decl -> decl
   | None ->
-    match Map.find t.global name with
-    | Some decl -> decl
-    | None -> raise (Unbound_symbol ("The symbol " ^ name ^ " is unbound"))
+    (match Map.find env.global name with
+     | Some decl -> decl
+     | None -> raise (Unbound_symbol ("The symbol " ^ name ^ " is unbound")))
 
-let push_scope t =
-  { t with locals = 
-    (Map.empty (module String)) :: t.locals }
+let push_scope env =
+  { env with locals = Map.empty (module String) :: env.locals }
 
-let pop_scope t = 
-  match t.locals with
+let pop_scope env =
+  match env.locals with
   | [] -> raise No_local_scope
-  | hd :: tl ->
-    {t with locals = tl}, hd
-
-let alist_of_scope (scope: scope) = 
-  Map.to_alist scope
+  | hd :: tl -> (hd, { env with locals = tl })
