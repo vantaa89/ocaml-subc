@@ -1,6 +1,6 @@
 Parser regression tests
 
-  $ ../../src/main.exe < arrays.c
+  $ ../../src/main.exe --emit-log < arrays.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -152,7 +152,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -163,7 +163,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -174,7 +174,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->INTEGER_CONST
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -197,8 +197,9 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
 
-  $ ../../src/main.exe < basic_types.c
+  $ ../../src/main.exe --emit-log < basic_types.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -237,7 +238,7 @@ Parser regression tests
   stmt->expr ';'
   stmt_list->stmt_list stmt
   unary->ID
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -251,8 +252,9 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
 
-  $ ../../src/main.exe < comprehensive.c
+  $ ../../src/main.exe --emit-log < comprehensive.c
   ext_def_list->epsilon
   def_list->epsilon
   type_specifier->TYPE
@@ -478,7 +480,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -494,7 +496,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -510,7 +512,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -526,7 +528,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -542,7 +544,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->INTEGER_CONST
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -654,7 +656,7 @@ Parser regression tests
   stmt_list->stmt_list stmt
   unary->ID
   unary->'*' unary
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -668,7 +670,7 @@ Parser regression tests
   expr->binary
   unary->'(' expr ')'
   unary->'*' unary
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -682,7 +684,7 @@ Parser regression tests
   expr->binary
   unary->'(' expr ')'
   unary->'*' unary
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -696,7 +698,7 @@ Parser regression tests
   expr->binary
   unary->'(' expr ')'
   unary->'*' unary
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -710,7 +712,7 @@ Parser regression tests
   expr->binary
   unary->'(' expr ')'
   unary->'*' unary
-  unary->INTEGER_CONST
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -770,8 +772,9 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
 
-  $ ../../src/main.exe < control_flow.c
+  $ ../../src/main.exe --emit-log < control_flow.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -940,8 +943,9 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
 
-  $ ../../src/main.exe < functions.c
+  $ ../../src/main.exe --emit-log < functions.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -1071,7 +1075,7 @@ Parser regression tests
   binary->unary
   expr->binary
   unary->unary '[' expr ']'
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -1090,8 +1094,9 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
 
-  $ ../../src/main.exe < invalid_features.c
+  $ ../../src/main.exe --emit-log < invalid_features.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -1106,8 +1111,9 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
 
-  $ ../../src/main.exe < nested_comments.c
+  $ ../../src/main.exe --emit-log < nested_comments.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -1133,8 +1139,9 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
 
-  $ ../../src/main.exe < pointers.c
+  $ ../../src/main.exe --emit-log < pointers.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -1223,7 +1230,7 @@ Parser regression tests
   stmt_list->stmt_list stmt
   unary->ID
   unary->'*' unary
-  unary->ID
+  unary->CHAR_CONST
   binary->unary
   expr->binary
   expr->unary '=' expr
@@ -1249,8 +1256,9 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
 
-  $ ../../src/main.exe < structs.c
+  $ ../../src/main.exe --emit-log < structs.c
   ext_def_list->epsilon
   def_list->epsilon
   type_specifier->TYPE
@@ -1323,3 +1331,5 @@ Parser regression tests
   compound_stmt->'{' def_list stmt_list '}'
   ext_def->func_decl compound_stmt
   ext_def_list->ext_def_list ext_def
+  program->ext_def_list
+
