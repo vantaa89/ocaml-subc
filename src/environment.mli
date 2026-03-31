@@ -29,4 +29,5 @@ val fetch_decl : string -> t -> decl
 val push_scope : t -> t
 val pop_scope : t -> scope * t
 
+val decl_of_ast : Ast.decl_statement -> decl
 val scope_to_struct_entries: scope -> Type_system.struct_entry list

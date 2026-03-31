@@ -30,6 +30,17 @@ let empty = {
   locals = [];
 }
 
+let decl_of_ast (decl : Ast.decl_statement) =
+  let base = decl.type_ in
+  let with_pointer =
+    if decl.pointer_depth > 0 then Type_system.Pointer base else base
+  in
+  let ty = match decl.array_size with
+    | Some n -> Type_system.Array (with_pointer, n)
+    | None -> with_pointer
+  in
+  Var { type_ = ty }
+
 let declare_global name decl env =
   { env with global = Map.set env.global ~key:name ~data:decl }
 
