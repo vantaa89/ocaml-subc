@@ -41,17 +41,17 @@ let decl_of_ast (decl : Ast.decl_statement) =
   in
   Var { type_ = ty }
 
-let declare_global name decl env =
+let declare_global env name decl =
   { env with global = Map.set env.global ~key:name ~data:decl }
 
-let declare_local name decl env =
+let declare_local env name decl =
   match env.locals with
   | [] -> raise No_local_scope
   | hd :: tl ->
     if Map.mem hd name then raise (Duplicate_declaration name);
     { env with locals = Map.set hd ~key:name ~data:decl :: tl }
 
-let fetch_decl name env =
+let fetch_decl env name =
   let rec fetch_from_scopes = function
     | [] -> None
     | hd :: tl ->

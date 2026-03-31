@@ -22,9 +22,9 @@ type t
 
 val empty : t
 
-val declare_global : string -> decl -> t -> t
-val declare_local : string -> decl -> t -> t
-val fetch_decl : string -> t -> decl
+val declare_global : t -> string -> decl -> t
+val declare_local : t -> string -> decl -> t
+val fetch_decl : t -> string -> decl
 
 val push_scope : t -> t
 val pop_scope : t -> scope * t
