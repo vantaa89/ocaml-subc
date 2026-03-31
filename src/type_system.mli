@@ -4,7 +4,7 @@ type t =
 | Int 
 | Char 
 | Null 
-| Struct of struct_entry list
+| Struct of string
 | Array of t * int
 | Pointer of t
 [@@deriving sexp_of]
@@ -15,4 +15,4 @@ and struct_entry = {
 }
 [@@deriving sexp_of]
 
-val size_of: t -> int
+val size_of: lookup:(string -> struct_entry list) -> t -> int

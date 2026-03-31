@@ -81,16 +81,16 @@ ext_def
 type_specifier
   : INT                                                  {
       print_log "type_specifier->TYPE";
-      Ast.Int
+      Type_system.Int
     }
   | CHAR                                                 {
       print_log "type_specifier->TYPE";
-      Ast.Char
+      Type_system.Char
     }
   | STRUCT ID                                            {
       print_log "struct_specifier->STRUCT ID";
       print_log "type_specifier->struct_specifier";
-      Ast.Struct $2
+      Type_system.Struct $2
     }
   ;
 

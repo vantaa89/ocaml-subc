@@ -46,14 +46,8 @@ type expr =
   | Null
 [@@deriving sexp_of]
 
-type type_spec =
-  | Int
-  | Char
-  | Struct of string
-[@@deriving sexp_of]
-
-type decl =
-  { type_ : type_spec
+type decl_statement =
+  { type_ : Type_system.t
   ; pointer_depth : int
   ; name : string
   ; array_size : int option
@@ -61,9 +55,9 @@ type decl =
 [@@deriving sexp_of]
 
 type statement =
-  | Global_decl of decl
-  | Local_decl of decl
-  | Struct_def of string * decl list
+  | Global_decl of decl_statement
+  | Local_decl of decl_statement
+  | Struct_def of string * decl_statement list
   | Func_def of func_decl * statement list
   | Expr of expr
   | Return of expr
@@ -77,10 +71,10 @@ type statement =
 [@@deriving sexp_of]
 
 and func_decl =
-  { return_type : type_spec
+  { return_type : Type_system.t
   ; pointer_depth : int
   ; name : string
-  ; params : decl list
+  ; params : decl_statement list
   }
 [@@deriving sexp_of]
 
