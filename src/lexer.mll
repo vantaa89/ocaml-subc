@@ -31,6 +31,7 @@ let identifier = letter (letter | digit)*
 let whitespace = [' ' '\t']+
 let float = digit+ '.' digit* (['e' 'E'] ['+' '-']? digit+)?
 let integer = '0' | ['1'-'9'] digit*
+let special_char = '\\' ['n' 't' '0' '\\' '\'' '"']
 
 rule token = parse
   | whitespace { token lexbuf }
@@ -42,6 +43,8 @@ rule token = parse
     | None -> ID text
    }
   | integer as text { INTEGER_CONST (Int.of_string text) }
+  | '\'' ((special_char | [^ '\\' '\'' '\n']) as s) '\'' { CHAR_CONST s }
+  | '"' ((special_char | [^ '\\' '"' '\n'])* as s) '"' { STRING s }
   | "->" { STRUCTOP }
   | "++" { INCOP }
   | "--" { DECOP }
