@@ -16,7 +16,7 @@ type decl =
       { return_type : Type_system.t
       ; params : (string * Type_system.t) list
       }
-  | Struct of Type_system.struct_entry list
+  | Struct_type of Type_system.struct_entry list
 
 type scope = (string, decl, String.comparator_witness) Map.t
 
@@ -62,3 +62,10 @@ let pop_scope env =
   match env.locals with
   | [] -> raise No_local_scope
   | hd :: tl -> (hd, { env with locals = tl })
+
+let scope_to_struct_entries scope =
+  Map.fold scope ~init:[] ~f:(fun ~key ~data acc ->
+    match data with
+    | Var { type_ } -> { Type_system.entry_name = key; entry_type = type_ } :: acc
+    | _ -> acc)
+  |> List.rev

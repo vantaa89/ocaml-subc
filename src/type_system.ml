@@ -1,9 +1,9 @@
 open! Sexplib0.Sexp_conv
 
-type t = 
-| Int 
-| Char 
-| Null 
+type t =
+| Int
+| Char
+| Null
 | Struct of struct_entry list
 | Array of t * int
 | Pointer of t

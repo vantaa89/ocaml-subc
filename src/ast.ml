@@ -46,59 +46,43 @@ type expr =
   | Null
 [@@deriving sexp_of]
 
-type declarator =
-  { name : string
+type type_spec =
+  | Int
+  | Char
+  | Struct of string
+[@@deriving sexp_of]
+
+type decl =
+  { type_ : type_spec
   ; pointer_depth : int
+  ; name : string
   ; array_size : int option
   }
 [@@deriving sexp_of]
 
-type def =
-  { decl_type : Type_system.t
-  ; declarator : declarator
-  }
-[@@deriving sexp_of]
-
-type param_decl = def
-[@@deriving sexp_of]
-
-type struct_specifier =
-  { name : string
-  ; def_list : def list option
-  }
-[@@deriving sexp_of]
-
-type stmt =
+type statement =
+  | Global_decl of decl
+  | Local_decl of decl
+  | Struct_def of string * decl list
+  | Func_def of func_decl * statement list
   | Expr of expr
-  | Compound of compound_stmt
   | Return of expr
   | Empty
-  | If of expr * stmt * stmt option
-  | While of expr * stmt
-  | For of expr option * expr option * expr option * stmt
+  | If of expr * statement * statement option
+  | While of expr * statement
+  | For of expr option * expr option * expr option * statement
   | Break
   | Continue
+  | Block of statement list
 [@@deriving sexp_of]
 
-and compound_stmt =
-  { def_list : def list
-  ; stmt_list : stmt list
-  }
-[@@deriving sexp_of]
-
-type func_decl =
-  { return_type : Type_system.t
+and func_decl =
+  { return_type : type_spec
   ; pointer_depth : int
   ; name : string
-  ; param_list : param_decl list
+  ; params : decl list
   }
 [@@deriving sexp_of]
 
-type ext_def =
-  | Global_decl of def
-  | Struct_decl of struct_specifier
-  | Function_def of func_decl * compound_stmt
-[@@deriving sexp_of]
-
-type program = ext_def list
+type program = statement list
 [@@deriving sexp_of]
