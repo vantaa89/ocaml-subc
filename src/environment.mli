@@ -14,7 +14,7 @@ type decl =
       { return_type : Type_system.t
       ; params : (string * Type_system.t) list
       }
-  | Struct_type of Type_system.struct_entry list
+  | Struct_type of string * Type_system.struct_entry list
 
 type scope
 
@@ -30,4 +30,5 @@ val push_scope : t -> t
 val pop_scope : t -> scope * t
 
 val decl_of_ast : Ast.decl_statement -> decl
+val type_of_decl : decl -> Type_system.t
 val scope_to_struct_entries: scope -> Type_system.struct_entry list

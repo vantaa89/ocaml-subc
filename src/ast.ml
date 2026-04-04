@@ -57,7 +57,7 @@ type decl_statement =
 type statement =
   | Global_decl of decl_statement
   | Local_decl of decl_statement
-  | Struct_def of string * decl_statement list
+  | Struct_def of string * Type_system.struct_entry list
   | Func_def of func_decl * statement list
   | Expr of expr
   | Return of expr

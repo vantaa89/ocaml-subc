@@ -70,7 +70,9 @@ ext_def
     }
   | struct_specifier SEMI                                {
       print_log "ext_def->struct_specifier ';'";
-      $1
+      (match $1 with
+       | Type_system.Struct (name, Some entries) -> Ast.Struct_def (name, entries)
+       | _ -> Ast.Empty)
     }
   | func_decl compound_stmt                              {
       print_log "ext_def->func_decl compound_stmt";
@@ -87,17 +89,29 @@ type_specifier
       print_log "type_specifier->TYPE";
       Type_system.Char
     }
-  | STRUCT ID                                            {
-      print_log "struct_specifier->STRUCT ID";
+  | struct_specifier                                     {
       print_log "type_specifier->struct_specifier";
-      Type_system.Struct $2
+      $1
     }
   ;
 
 struct_specifier
-  : STRUCT ID LBRACE def_list RBRACE                     {
+  : STRUCT ID                                            {
+      print_log "struct_specifier->STRUCT ID";
+      Type_system.Struct ($2, None)
+    }
+  | STRUCT ID LBRACE def_list RBRACE                     {
       print_log "struct_specifier->STRUCT ID '{' def_list '}'";
-      Ast.Struct_def ($2, List.rev $4)
+      let entries = List.rev_map (fun (d : Ast.decl_statement) ->
+        let base = d.type_ in
+        let with_ptr = if d.pointer_depth > 0 then Type_system.Pointer base else base in
+        let ty = match d.array_size with
+          | Some n -> Type_system.Array (with_ptr, n)
+          | None -> with_ptr
+        in
+        { Type_system.entry_name = d.name; entry_type = ty }
+      ) $4 in
+      Type_system.Struct ($2, Some entries)
     }
   ;
 
