@@ -24,7 +24,7 @@ let () =
     let (_env, errors) = Semantics.check_program ast in
     List.iter (fun exn ->
       match exn with
-      | Semantics.Type_error msg -> Printf.printf "error: %s\n" msg
+      | Semantics.Type_error (line, msg) -> Printf.printf "%d: error: %s\n" line msg
       | exn -> Printf.printf "error: %s\n" (Printexc.to_string exn)
     ) errors;
     (match errors with [] -> () | _ -> exit 1)

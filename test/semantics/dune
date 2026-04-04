@@ -1,0 +1,8 @@
+(cram
+ (deps
+  %{bin:sh}
+  %{exe:../../src/main.exe}
+  func_op.c
+  ptr_op.c
+  str_op.c
+  var_def.c))

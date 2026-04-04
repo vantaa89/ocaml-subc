@@ -68,6 +68,7 @@ type statement =
   | Break
   | Continue
   | Block of statement list
+  | Loc of int * statement
 [@@deriving sexp_of]
 
 and func_decl =
