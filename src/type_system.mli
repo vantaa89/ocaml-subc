@@ -17,5 +17,6 @@ and entry = {
 val size_of: lookup:(string -> entry list) -> t -> int
 val wrap_pointer: t -> int -> t
 
+val comparable: t -> t -> bool
 val assignable: t -> t -> bool
 val equal: t -> t -> bool

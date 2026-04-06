@@ -30,6 +30,13 @@ let rec wrap_pointer type_ pointer_depth =
 else Pointer (wrap_pointer type_ (pointer_depth-1))
 
 
+let comparable lhs rhs =
+  (equal lhs Int && equal rhs Int) ||
+  (equal lhs Char && equal rhs Char) ||
+  (match lhs, rhs with
+   | Pointer a, Pointer b -> equal a b
+   | _ -> false)
+
 let assignable lhs rhs =
   equal lhs rhs ||
   match lhs, rhs with

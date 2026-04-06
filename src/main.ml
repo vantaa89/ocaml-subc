@@ -17,4 +17,7 @@ let () =
     |> Sexplib.Sexp.to_string_hum
     |> print_endline;
     exit 0
-  end
+  end;
+  let (_env, errors) = Semantics.check_program ~on_exn:`Abort ast in
+  let errors = List.rev errors in
+  List.iter (fun e -> print_endline (Semantics.string_of_error e)) errors

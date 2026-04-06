@@ -81,6 +81,11 @@ and func_decl =
 type program = statement list
 [@@deriving sexp_of]
 
+let is_lvalue = function
+  | Identifier _ | Index _ | Field _ | Ptr_field _ -> true
+  | Unary (Deref, _) -> true
+  | _ -> false
+
 let entry_of_decl { type_; pointer_depth; name; array_size } =
   let entry_type = Type_system.wrap_pointer type_ pointer_depth in
   match array_size with
