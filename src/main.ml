@@ -22,6 +22,11 @@ let () =
   if !check_only then begin
     let (_env, errors) = Semantics.check_program ~on_exn:`Abort ast in
     let errors = List.rev errors in
-    List.iter (fun (line, e) -> Printf.printf "%d: %s\n" line (Semantics.string_of_error e)) errors;
+    ignore (List.fold_left (fun last_line_no (line, e) ->
+      if line <> last_line_no then
+        Printf.printf "%d: %s\n" line (Semantics.string_of_error e);
+      line)
+    (-1)
+    errors);
     if errors <> [] then exit 1
   end
