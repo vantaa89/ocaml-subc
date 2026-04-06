@@ -4,15 +4,18 @@ type t =
 | Int 
 | Char 
 | Null 
-| Struct of string
+| Struct of string * entry list
 | Array of t * int
 | Pointer of t
-[@@deriving sexp_of]
 
-and struct_entry = {
+and entry = {
   entry_name: string;
   entry_type: t;
 }
 [@@deriving sexp_of]
 
-val size_of: lookup:(string -> struct_entry list) -> t -> int
+val size_of: lookup:(string -> entry list) -> t -> int
+val wrap_pointer: t -> int -> t
+
+val assignable: t -> t -> bool
+val equal: t -> t -> bool

@@ -12,9 +12,9 @@ type decl =
       }
   | Func of
       { return_type : Type_system.t
-      ; params : (string * Type_system.t) list
+      ; params : Type_system.entry list
       }
-  | Struct_type of Type_system.struct_entry list
+  | Struct_type of Type_system.t
 
 type scope
 
@@ -30,4 +30,14 @@ val push_scope : t -> t
 val pop_scope : t -> scope * t
 
 val decl_of_ast : Ast.decl_statement -> decl
-val scope_to_struct_entries: scope -> Type_system.struct_entry list
+
+val is_declared_global : t -> string -> bool
+val is_declared_current_scope : t -> string -> bool
+
+val push_func_frame : t -> decl -> t
+val pop_func_frame : t -> t
+val current_func_decl: t -> decl option
+
+val enter_loop : t -> t
+val exit_loop : t -> t
+val in_loop : t -> bool

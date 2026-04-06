@@ -14,20 +14,24 @@ type decl =
       }
   | Func of
       { return_type : Type_system.t
-      ; params : (string * Type_system.t) list
+      ; params : Type_system.entry list
       }
-  | Struct_type of Type_system.struct_entry list
+  | Struct_type of Type_system.t
 
 type scope = (string, decl, String.comparator_witness) Map.t
 
 type t = {
   global : scope;
   locals : scope list;
+  current_func_decl: decl option;  (* The function declaration currently being defined *)
+  loop_depth: int;
 }
 
 let empty = {
   global = Map.empty (module String);
   locals = [];
+  current_func_decl = None;
+  loop_depth = 0;
 }
 
 let decl_of_ast (decl : Ast.decl_statement) =
@@ -74,9 +78,31 @@ let pop_scope env =
   | [] -> raise No_local_scope
   | hd :: tl -> (hd, { env with locals = tl })
 
-let scope_to_struct_entries scope =
-  Map.fold scope ~init:[] ~f:(fun ~key ~data acc ->
-    match data with
-    | Var { type_ } -> { Type_system.entry_name = key; entry_type = type_ } :: acc
-    | _ -> acc)
-  |> List.rev
+
+let is_declared_global env name = 
+  Option.is_some (Map.find env.global name)
+  
+let is_declared_current_scope env name = 
+  match env.locals with
+  | [] -> false
+  | current_scope::_ -> Option.is_some (Map.find current_scope name)
+
+let push_func_frame env func_decl =
+  let env = push_scope env in
+  let env = match func_decl with
+    | Func { params; _ } ->
+      List.fold params ~init:env ~f:(fun env (p : Type_system.entry) ->
+        declare_local env p.entry_name (Var { type_ = p.entry_type }))
+    | _ -> env
+  in
+  {env with current_func_decl = Some func_decl}
+
+let pop_func_frame env = 
+  let _, env = pop_scope env in
+  {env with current_func_decl = None }
+
+let current_func_decl env = env.current_func_decl
+
+let enter_loop env = { env with loop_depth = env.loop_depth + 1 }
+let exit_loop env = { env with loop_depth = env.loop_depth - 1 }
+let in_loop env = env.loop_depth > 0

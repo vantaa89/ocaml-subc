@@ -80,3 +80,9 @@ and func_decl =
 
 type program = statement list
 [@@deriving sexp_of]
+
+let entry_of_decl { type_; pointer_depth; name; array_size } =
+  let entry_type = Type_system.wrap_pointer type_ pointer_depth in
+  match array_size with
+  | None -> Type_system.{ entry_name = name; entry_type }
+  | Some array_size -> Type_system.{ entry_name = name; entry_type = Array (entry_type, array_size) }
