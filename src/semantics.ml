@@ -1,43 +1,32 @@
 open Base
 
-(* 3.3.1 Assignment *)
 exception Lvalue_not_assignable
 exception Null_to_non_pointer
 exception Incompatible_assignment
 
-(* 3.3.2 Binary operators *)
 exception Invalid_binary_operands
 
-(* 3.3.3 Unary operators *)
 exception Invalid_unary_operand
 
-(* 3.3.4/5 Relational & Equality *)
 exception Not_comparable
 
-(* 3.3.6 Indirection *)
 exception Indirection_requires_pointer
 
-(* 3.3.7 Address-of *)
 exception Rvalue_address
 
-(* 3.3.8 Member access *)
 exception Not_a_struct
 exception Not_a_struct_pointer
 exception No_such_member
 
-(* 3.3.9 Subscript *)
 exception Not_an_array
 exception Subscript_not_integer
 
-(* 3.4 Struct declarations *)
 exception Incomplete_type
 
-(* 3.5 Function declarations *)
 exception Incompatible_return_types
 exception Not_a_function
 exception Incompatible_arguments
 
-(* Extra *)
 exception Break_outside_loop
 exception Continue_outside_loop
 
@@ -211,32 +200,34 @@ let rec check_expr env expr =
 
   | Ast.Int_const _ | Ast.Char_const _ | Ast.String_const _ | Ast.Null -> []
 
-let rec check_statement env statement =
-  match statement with
-  | Ast.Global_decl decl ->
+let rec check_statement env stmt =
+  let line = stmt.Ast.line in
+  let tag errs = List.map errs ~f:(fun e -> (line, e)) in
+  match stmt.Ast.kind with
+  | Global_decl decl ->
     if Environment.is_declared_global env decl.name then
-      (env, [Environment.Duplicate_declaration decl.name])
+      (env, [(line, Environment.Duplicate_declaration decl.name)])
     else
       let env = Environment.declare_global env decl.name (Environment.decl_of_ast decl) in
       (env, [])
-  | Ast.Local_decl decl ->
+  | Local_decl decl ->
     if Environment.is_declared_current_scope env decl.name then
-      (env, [Environment.Duplicate_declaration decl.name])
+      (env, [(line, Environment.Duplicate_declaration decl.name)])
     else
       let env = Environment.declare_local env decl.name (Environment.decl_of_ast decl) in
       (env, [])
-  | Ast.Struct_def (name, fields) ->
+  | Struct_def (name, fields) ->
     if Environment.is_declared_global env name then
-      (env, [Environment.Duplicate_declaration name])
+      (env, [(line, Environment.Duplicate_declaration name)])
     else
       let struct_entry_list = List.map fields ~f:Ast.entry_of_decl in
       let struct_type = Type_system.Struct (name, struct_entry_list) in
       let env = Environment.declare_global env name (Environment.Struct_type struct_type) in
       (env, [])
-  | Ast.Func_def (func_decl, body) ->
+  | Func_def (func_decl, body) ->
     let name = func_decl.name in
     if Environment.is_declared_global env name then
-      (env, [Environment.Duplicate_declaration name])
+      (env, [(line, Environment.Duplicate_declaration name)])
     else
       let func_decl = Environment.Func {
         return_type = func_decl.return_type;
@@ -244,69 +235,69 @@ let rec check_statement env statement =
       } in
       let env = Environment.declare_global env name func_decl in
       let env = Environment.push_func_frame env func_decl in
-      let _, body_error_list = List.fold body ~init:(env, []) ~f:(fun (env, errors) stmt ->
-        let (env, new_err) = check_statement env stmt in
+      let _, body_error_list = List.fold body ~init:(env, []) ~f:(fun (env, errors) s ->
+        let (env, new_err) = check_statement env s in
         (env, new_err @ errors)
       ) in
       let env = Environment.pop_func_frame env in
       (env, body_error_list)
-  | Ast.Expr expr -> (env, check_expr env expr)
+  | Expr expr -> (env, tag (check_expr env expr))
   (* 3.5 Return type check *)
-  | Ast.Return expr ->
-    let expr_errors = check_expr env expr in
+  | Return expr ->
+    let expr_errors = tag (check_expr env expr) in
     let return_errors = match Environment.current_func_decl env with
       | Some (Environment.Func { return_type; _ }) ->
         let ret_ty = type_of_expr env expr in
         if Type_system.equal ret_ty Null then
-          (match return_type with Pointer _ -> [] | _ -> [Incompatible_return_types])
+          (match return_type with Pointer _ -> [] | _ -> tag [Incompatible_return_types])
         else if not (Type_system.equal return_type ret_ty) then
-          [Incompatible_return_types]
+          tag [Incompatible_return_types]
         else []
-      | _ -> [Incompatible_return_types]
+      | _ -> tag [Incompatible_return_types]
     in
     (env, return_errors @ expr_errors)
-  | Ast.Empty -> (env, [])
-  | Ast.If (cond, then_, else_) ->
-    let cond_errors = check_expr env cond in
+  | Empty -> (env, [])
+  | If (cond, then_, else_) ->
+    let cond_errors = tag (check_expr env cond) in
     let (env, then_errors) = check_statement env then_ in
     let (env, else_errors) = match else_ with
       | Some s -> check_statement env s
       | None -> (env, [])
     in
     (env, else_errors @ then_errors @ cond_errors)
-  | Ast.While (cond, body) ->
-    let cond_errors = check_expr env cond in
+  | While (cond, body) ->
+    let cond_errors = tag (check_expr env cond) in
     let env = Environment.enter_loop env in
     let (env, body_errors) = check_statement env body in
     let env = Environment.exit_loop env in
     (env, body_errors @ cond_errors)
-  | Ast.For (init, cond, step, body) ->
+  | For (init, cond, step, body) ->
     let init_errors = match init with
-      | Some e -> check_expr env e
+      | Some e -> tag (check_expr env e)
       | None -> []
     in
     let cond_errors = match cond with
-      | Some e -> check_expr env e
+      | Some e -> tag (check_expr env e)
       | None -> []
     in
     let step_errors = match step with
-      | Some e -> check_expr env e
+      | Some e -> tag (check_expr env e)
       | None -> []
     in
     let env = Environment.enter_loop env in
     let (env, body_errors) = check_statement env body in
     let env = Environment.exit_loop env in
     (env, body_errors @ step_errors @ cond_errors @ init_errors)
-  | Ast.Break ->
+  | Break ->
     if Environment.in_loop env then (env, [])
-    else (env, [Break_outside_loop])
-  | Ast.Continue ->
+    else (env, [(line, Break_outside_loop)])
+  | Continue ->
     if Environment.in_loop env then (env, [])
-    else (env, [Continue_outside_loop])
-  | Ast.Block stmts ->
+    else (env, [(line, Continue_outside_loop)])
+  | Block stmts ->
     let env = Environment.push_scope env in
-    let (env, errors) = List.fold stmts ~init:(env, []) ~f:(fun (env, errors) stmt ->
-      let (env, new_errors) = check_statement env stmt in
+    let (env, errors) = List.fold stmts ~init:(env, []) ~f:(fun (env, errors) s ->
+      let (env, new_errors) = check_statement env s in
       (env, new_errors @ errors)
     ) in
     let (_scope, env) = Environment.pop_scope env in
@@ -320,34 +311,22 @@ let check_program ~on_exn:`Abort program =
     (env', new_errors @ errors))
 
 let string_of_error = function
-  (* 3.1 *)
-  | Environment.Unbound_symbol _ -> "error: use of undeclared identifier"
-  (* 3.2 *)
-  | Environment.Duplicate_declaration _ -> "error: redeclaration"
-  (* 3.3.1 *)
+  | Environment.Unbound_symbol var -> ("error: The symbol " ^ var ^ " is unbound")
+  | Environment.Duplicate_declaration var -> ("error: redeclaration of " ^ var)
   | Lvalue_not_assignable -> "error: lvalue is not assignable"
   | Null_to_non_pointer -> "error: cannot assign 'NULL' to non-pointer type"
   | Incompatible_assignment -> "error: incompatible types for assignment operation"
-  (* 3.3.2 *)
   | Invalid_binary_operands -> "error: invalid operands to binary expression"
-  (* 3.3.3 *)
   | Invalid_unary_operand -> "error: invalid argument type to unary expression"
-  (* 3.3.4/5 *)
   | Not_comparable -> "error: types are not comparable in binary expression"
-  (* 3.3.6 *)
   | Indirection_requires_pointer -> "error: indirection requires pointer operand"
-  (* 3.3.7 *)
   | Rvalue_address -> "error: cannot take the address of an rvalue"
-  (* 3.3.8 *)
   | Not_a_struct -> "error: member reference base type is not a struct"
   | Not_a_struct_pointer -> "error: member reference base type is not a struct pointer"
   | No_such_member -> "error: no such member in struct"
-  (* 3.3.9 *)
   | Not_an_array -> "error: subscripted value is not an array"
   | Subscript_not_integer -> "error: array subscript is not an integer"
-  (* 3.4 *)
   | Incomplete_type -> "error: incomplete type"
-  (* 3.5 *)
   | Incompatible_return_types -> "error: incompatible return types"
   | Not_a_function -> "error: not a function"
   | Incompatible_arguments -> "error: incompatible arguments in function call"

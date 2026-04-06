@@ -1,12 +1,13 @@
 let emit_log = ref false
 let emit_ast = ref false
+let check_only = ref false
 let () =
   Arg.parse
     [ "--emit-log", Arg.Set emit_log, "Print the reduction log" ;
-      "--emit-ast", Arg.Set emit_ast, "Print the parsed AST" ]
+      "--emit-ast", Arg.Set emit_ast, "Print the parsed AST" ;
+      "--check", Arg.Set check_only, "Run semantic analysis only" ]
     (fun _ -> ())
     "subc [options] < input";
-  (* Logger.emit_log := true; *)
   if !emit_log then
     Logger.emit_log := true;
   let lexbuf = Lexing.from_channel stdin in
@@ -18,6 +19,9 @@ let () =
     |> print_endline;
     exit 0
   end;
-  let (_env, errors) = Semantics.check_program ~on_exn:`Abort ast in
-  let errors = List.rev errors in
-  List.iter (fun e -> print_endline (Semantics.string_of_error e)) errors
+  if !check_only then begin
+    let (_env, errors) = Semantics.check_program ~on_exn:`Abort ast in
+    let errors = List.rev errors in
+    List.iter (fun (line, e) -> Printf.printf "%d: %s\n" line (Semantics.string_of_error e)) errors;
+    if errors <> [] then exit 1
+  end

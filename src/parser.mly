@@ -61,12 +61,12 @@ ext_def_list
 ext_def
   : type_specifier pointers ID SEMI                      {
       print_log "ext_def->type_specifier pointers ID ';'";
-      Ast.Global_decl { type_ = $1; pointer_depth = $2; name = $3; array_size = None }
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Global_decl { type_ = $1; pointer_depth = $2; name = $3; array_size = None } }
     }
   | type_specifier pointers ID LBRACKET INTEGER_CONST RBRACKET SEMI
                                                          {
       print_log "ext_def->type_specifier pointers ID '[' INTEGER_CONST ']' ';'";
-      Ast.Global_decl { type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 }
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Global_decl { type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 } }
     }
   | struct_specifier SEMI                                {
       print_log "ext_def->struct_specifier ';'";
@@ -74,7 +74,7 @@ ext_def
     }
   | func_decl compound_stmt                              {
       print_log "ext_def->func_decl compound_stmt";
-      Ast.Func_def ($1, $2)
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Func_def ($1, $2) }
     }
   ;
 
@@ -97,7 +97,7 @@ type_specifier
 struct_specifier
   : STRUCT ID LBRACE def_list RBRACE                     {
       print_log "struct_specifier->STRUCT ID '{' def_list '}'";
-      Ast.Struct_def ($2, List.rev $4)
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Struct_def ($2, List.rev $4) }
     }
   ;
 
@@ -175,7 +175,7 @@ compound_stmt
 local_def_list
   : local_def_list def                                   {
       print_log "def_list->def_list def";
-      Ast.Local_decl $2 :: $1
+      Ast.{ line = $startpos($2).Lexing.pos_lnum; kind = Local_decl $2 } :: $1
     }
   |                                                      {
       print_log "def_list->epsilon";
@@ -197,44 +197,44 @@ stmt_list
 stmt
   : expr SEMI                                            {
       print_log "stmt->expr ';'";
-      Ast.Expr $1
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Expr $1 }
     }
   | compound_stmt                                        {
       print_log "stmt->compound_stmt";
-      Ast.Block $1
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Block $1 }
     }
   | RETURN expr SEMI                                     {
       print_log "stmt->RETURN expr ';'";
-      Ast.Return $2
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Return $2 }
     }
   | SEMI                                                 {
       print_log "stmt->';'";
-      Ast.Empty
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Empty }
     }
   | IF LPAREN expr RPAREN stmt %prec IF_WITHOUT_ELSE     {
       print_log "stmt->IF '(' expr ')' stmt";
-      Ast.If ($3, $5, None)
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = If ($3, $5, None) }
     }
   | IF LPAREN expr RPAREN stmt ELSE stmt                 {
       print_log "stmt->IF '(' expr ')' stmt ELSE stmt";
-      Ast.If ($3, $5, Some $7)
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = If ($3, $5, Some $7) }
     }
   | WHILE LPAREN expr RPAREN stmt                        {
       print_log "stmt->WHILE '(' expr ')' stmt";
-      Ast.While ($3, $5)
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = While ($3, $5) }
     }
   | FOR LPAREN expr_e SEMI expr_e SEMI expr_e RPAREN stmt
                                                          {
       print_log "stmt->FOR '(' expr_e ';' expr_e ';' expr_e ')' stmt";
-      Ast.For ($3, $5, $7, $9)
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = For ($3, $5, $7, $9) }
     }
   | BREAK SEMI                                           {
       print_log "stmt->BREAK ';'";
-      Ast.Break
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Break }
     }
   | CONTINUE SEMI                                        {
       print_log "stmt->CONTINUE ';'";
-      Ast.Continue
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Continue }
     }
   ;
 

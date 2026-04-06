@@ -54,7 +54,7 @@ type decl_statement =
   }
 [@@deriving sexp_of]
 
-type statement =
+type stmt_kind =
   | Global_decl of decl_statement
   | Local_decl of decl_statement
   | Struct_def of string * decl_statement list
@@ -68,7 +68,11 @@ type statement =
   | Break
   | Continue
   | Block of statement list
-[@@deriving sexp_of]
+
+and statement =
+  { line : int
+  ; kind : stmt_kind
+  }
 
 and func_decl =
   { return_type : Type_system.t

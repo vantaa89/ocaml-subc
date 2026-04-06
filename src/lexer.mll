@@ -35,7 +35,7 @@ let special_char = '\\' ['n' 't' '0' '\\' '\'' '"']
 
 rule token = parse
   | whitespace { token lexbuf }
-  | '\n' { token lexbuf }
+  | '\n' { Lexing.new_line lexbuf; token lexbuf }
   | "/*" { comment 1 lexbuf }
   | identifier as text { 
     match Hashtbl.find keywords text with
@@ -79,4 +79,5 @@ and comment depth = parse
       if depth = 1 then token lexbuf else comment (depth - 1) lexbuf
     }
   | eof { raise (Lexical_error "unterminated comment") }
+  | '\n' { Lexing.new_line lexbuf; comment depth lexbuf }
   | _ { comment depth lexbuf }
