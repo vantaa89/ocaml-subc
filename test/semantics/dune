@@ -2,7 +2,13 @@
  (deps
   %{bin:sh}
   %{exe:../../src/main.exe}
+  complex_semantic_tests.c
+  complex_test_1.c
+  expr.c
+  expr_test.c
   func_op.c
   ptr_op.c
+  semantic_tests1.c
+  slide.c
   str_op.c
   var_def.c))
