@@ -215,16 +215,19 @@ let rec check_statement env stmt =
     if Environment.is_declared_current_scope env decl.name then
       (env, [(line, Duplicate_declaration decl.name)])
     else
-      let env = match decl.type_ with
-        | Struct (sname, _) when not (Environment.is_declared_global env sname) ->    (* always declare structs globally *)
-          Environment.declare_global env sname (Environment.Struct_type decl.type_)
-        | _ -> env
+      let (env, struct_errors) = match decl.type_ with
+        | Struct (sname, _) ->
+          if Environment.is_declared_global env sname then
+            (env, [(line, Duplicate_declaration sname)])
+          else
+            (Environment.declare_global env sname (Environment.Struct_type decl.type_), [])
+        | _ -> (env, [])
       in
       if not (Environment.is_struct_defined env decl.type_) then
-        (env, [(line, Incomplete_type)])
+        (env, (line, Incomplete_type) :: struct_errors)
       else
         let env = Environment.declare_local env decl.name (Environment.decl_of_ast decl) in
-        (env, [])
+        (env, struct_errors)
   | Struct_def (name, fields) ->
     if Environment.is_declared_global env name then
       (env, [(line, Duplicate_declaration name)])
@@ -254,6 +257,11 @@ let rec check_statement env stmt =
     if Environment.is_declared_global env name then
       (env, [(line, Duplicate_declaration name)])
     else
+      let return_errors =
+        if not (Environment.is_struct_defined env func_decl.return_type) then
+          [(line, Incomplete_type)]
+        else []
+      in
       let (_, param_errors) = List.fold func_decl.params ~init:(Set.empty (module String), [])
         ~f:(fun (seen, errs) (p : Ast.decl_statement) ->
           if Set.mem seen p.name then
@@ -274,7 +282,7 @@ let rec check_statement env stmt =
         (env, new_err @ errors)
       ) in
       let env = Environment.pop_func_frame env in
-      (env, body_error_list @ param_errors)
+      (env, body_error_list @ param_errors @ return_errors)
   | Expr expr -> (env, tag (check_expr env expr))
   | Return expr ->
     let expr_errors = tag (check_expr env expr) in
