@@ -5,6 +5,7 @@ type t =
 | Char 
 | Null 
 | Struct of string * entry list
+| Struct_ref of string
 | Array of t * int
 | Pointer of t
 

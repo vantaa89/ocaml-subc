@@ -46,14 +46,14 @@ let rec type_of_expr env expr =
      | ty -> ty)
   | Ast.Field (expr, name) ->
     (match type_of_expr env expr with
-     | Struct (sname, _) ->
+     | Struct (sname, _) | Struct_ref sname ->
        (match List.find (Environment.struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name) with
         | Some e -> e.entry_type
         | None -> Int)
      | _ -> Int)
   | Ast.Ptr_field (expr, name) ->
     (match type_of_expr env expr with
-     | Pointer (Struct (sname, _)) ->
+     | Pointer (Struct (sname, _)) | Pointer (Struct_ref sname) ->
        (match List.find (Environment.struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name) with
         | Some e -> e.entry_type
         | None -> Int)
@@ -152,7 +152,7 @@ let rec check_expr env expr =
   | Ast.Field (expr, name) ->
     let sub_errors = check_expr env expr in
     let field_errors = match type_of_expr env expr with
-      | Struct (sname, _) ->
+      | Struct (sname, _) | Struct_ref sname ->
         if List.exists (Environment.struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name)
         then [] else [No_such_member]
       | _ -> [Not_a_struct]
@@ -162,7 +162,7 @@ let rec check_expr env expr =
   | Ast.Ptr_field (expr, name) ->
     let sub_errors = check_expr env expr in
     let field_errors = match type_of_expr env expr with
-      | Pointer (Struct (sname, _)) ->
+      | Pointer (Struct (sname, _)) | Pointer (Struct_ref sname) ->
         if List.exists (Environment.struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name)
         then [] else [No_such_member]
       | _ -> [Not_a_struct_pointer]
@@ -202,12 +202,16 @@ let rec check_statement env stmt =
   | Global_decl decl ->
     if Environment.is_declared_global env decl.name then
       (env, [(line, Duplicate_declaration decl.name)])
+    else if not (Environment.is_struct_defined env decl.type_) then
+      (env, [(line, Incomplete_type)])
     else
       let env = Environment.declare_global env decl.name (Environment.decl_of_ast decl) in
       (env, [])
   | Local_decl decl ->
     if Environment.is_declared_current_scope env decl.name then
       (env, [(line, Duplicate_declaration decl.name)])
+    else if not (Environment.is_struct_defined env decl.type_) then
+      (env, [(line, Incomplete_type)])
     else
       let env = Environment.declare_local env decl.name (Environment.decl_of_ast decl) in
       (env, [])
@@ -217,7 +221,7 @@ let rec check_statement env stmt =
     else
       let check_field env (field : Ast.decl_statement) =
         match field.type_ with
-        | Struct (inner_name, []) ->
+        | Struct_ref inner_name ->
           if Environment.is_declared_global env inner_name then (env, [])
           else if field.pointer_depth > 0 && String.equal inner_name name then (env, [])
           else (env, [(field.line, Incomplete_type)])
@@ -240,6 +244,11 @@ let rec check_statement env stmt =
     if Environment.is_declared_global env name then
       (env, [(line, Duplicate_declaration name)])
     else
+      let param_errors = List.filter_map func_decl.params ~f:(fun (p : Ast.decl_statement) ->
+        if not (Environment.is_struct_defined env p.type_) then
+          Some (p.line, Incomplete_type)
+        else None)
+      in
       let func_decl = Environment.Func {
         return_type = Type_system.wrap_pointer func_decl.return_type func_decl.pointer_depth;
         params = List.map func_decl.params ~f:Ast.entry_of_decl
@@ -251,7 +260,7 @@ let rec check_statement env stmt =
         (env, new_err @ errors)
       ) in
       let env = Environment.pop_func_frame env in
-      (env, body_error_list)
+      (env, body_error_list @ param_errors)
   | Expr expr -> (env, tag (check_expr env expr))
   | Return expr ->
     let expr_errors = tag (check_expr env expr) in

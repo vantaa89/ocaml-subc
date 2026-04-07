@@ -90,7 +90,7 @@ type_specifier
   | STRUCT ID                                            {
       print_log "struct_specifier->STRUCT ID";
       print_log "type_specifier->struct_specifier";
-      Type_system.Struct ($2, [])
+      Type_system.Struct_ref $2
     }
   ;
 

@@ -78,8 +78,12 @@ let pop_scope env =
   | hd :: tl -> (hd, { env with locals = tl })
 
 
-let is_declared_global env name = 
+let is_declared_global env name =
   Option.is_some (Map.find env.global name)
+
+let is_struct_defined env = function
+  | Type_system.Struct_ref name -> is_declared_global env name
+  | _ -> true
   
 let is_declared_current_scope env name = 
   match env.locals with
