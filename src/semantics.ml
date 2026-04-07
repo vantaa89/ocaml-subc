@@ -27,6 +27,9 @@ exception Incompatible_return_types
 exception Not_a_function
 exception Incompatible_arguments
 
+exception Unbound_symbol of string
+exception Duplicate_declaration of string
+
 exception Break_outside_loop
 exception Continue_outside_loop
 
@@ -69,21 +72,20 @@ let rec type_of_expr env expr =
   | Ast.Call (func_expr, _args) ->
     (match func_expr with
      | Ast.Identifier name ->
-       (try match Environment.fetch_decl env name with
-        | Environment.Func { return_type; _ } -> return_type
-        | _ -> Int
-       with Environment.Unbound_symbol _ -> Int)
+       (match Environment.fetch_decl env name with
+        | Some (Environment.Func { return_type; _ }) -> return_type
+        | _ -> Int)
      | _ -> type_of_expr env func_expr)
   | Ast.Int_const _ -> Type_system.Int
   | Ast.Char_const _ -> Type_system.Char
   | Ast.String_const _ -> Type_system.Pointer Char
   | Ast.Identifier name ->
-    (try match Environment.fetch_decl env name with
-     | Environment.Var { type_ } -> type_
-     | Environment.Const { type_; _ } -> type_
-     | Environment.Func { return_type; _ } -> return_type
-     | Environment.Struct_type t -> t
-    with Environment.Unbound_symbol _ -> Int)
+    (match Environment.fetch_decl env name with
+     | Some (Environment.Var { type_ }) -> type_
+     | Some (Environment.Const { type_; _ }) -> type_
+     | Some (Environment.Func { return_type; _ }) -> return_type
+     | Some (Environment.Struct_type t) -> t
+     | None -> Int)
   | Ast.Null -> Type_system.Null
 
 let rec check_expr env expr =
@@ -183,22 +185,23 @@ let rec check_expr env expr =
       check_expr env arg @ errs) in
     let call_errors = match func_expr with
       | Ast.Identifier name ->
-        (try match Environment.fetch_decl env name with
-         | Environment.Func { params; _ } ->
+        (match Environment.fetch_decl env name with
+         | Some (Environment.Func { params; _ }) ->
            (match List.for_all2 args params ~f:(fun arg param ->
               Type_system.assignable param.entry_type (type_of_expr env arg))
             with
             | Ok true -> []
             | _ -> [Incompatible_arguments])
-         | _ -> [Not_a_function]
-        with Environment.Unbound_symbol _ -> [])
+         | Some _ -> [Not_a_function]
+         | None -> [])
       | _ -> []
     in
     args_errors @ func_errors @ call_errors
 
   | Ast.Identifier name ->
-    (try ignore (Environment.fetch_decl env name); []
-     with Environment.Unbound_symbol _ -> [Environment.Unbound_symbol name])
+    (match Environment.fetch_decl env name with
+     | Some _ -> []
+     | None -> [Unbound_symbol name])
 
   | Ast.Int_const _ | Ast.Char_const _ | Ast.String_const _ | Ast.Null -> []
 
@@ -208,19 +211,19 @@ let rec check_statement env stmt =
   match stmt.Ast.kind with
   | Global_decl decl ->
     if Environment.is_declared_global env decl.name then
-      (env, [(line, Environment.Duplicate_declaration decl.name)])
+      (env, [(line, Duplicate_declaration decl.name)])
     else
       let env = Environment.declare_global env decl.name (Environment.decl_of_ast decl) in
       (env, [])
   | Local_decl decl ->
     if Environment.is_declared_current_scope env decl.name then
-      (env, [(line, Environment.Duplicate_declaration decl.name)])
+      (env, [(line, Duplicate_declaration decl.name)])
     else
       let env = Environment.declare_local env decl.name (Environment.decl_of_ast decl) in
       (env, [])
   | Struct_def (name, fields) ->
     if Environment.is_declared_global env name then
-      (env, [(line, Environment.Duplicate_declaration name)])
+      (env, [(line, Duplicate_declaration name)])
     else
       let env = List.fold fields ~init:env ~f:(fun env (field : Ast.decl_statement) ->
         match field.type_ with
@@ -235,7 +238,7 @@ let rec check_statement env stmt =
   | Func_def (func_decl, body) ->
     let name = func_decl.name in
     if Environment.is_declared_global env name then
-      (env, [(line, Environment.Duplicate_declaration name)])
+      (env, [(line, Duplicate_declaration name)])
     else
       let func_decl = Environment.Func {
         return_type = Type_system.wrap_pointer func_decl.return_type func_decl.pointer_depth;
@@ -319,8 +322,8 @@ let check_program ~on_exn:`Abort program =
     (env', new_errors @ errors))
 
 let string_of_error = function
-  | Environment.Unbound_symbol _ -> "error: use of undeclared identifier"
-  | Environment.Duplicate_declaration _ -> "error: redeclaration"
+  | Unbound_symbol _ -> "error: use of undeclared identifier"
+  | Duplicate_declaration _ -> "error: redeclaration"
   | Lvalue_not_assignable -> "error: lvalue is not assignable"
   | Null_to_non_pointer -> "error: cannot assign 'NULL' to non-pointer type"
   | Incompatible_assignment -> "error: incompatible types for assignment operation"

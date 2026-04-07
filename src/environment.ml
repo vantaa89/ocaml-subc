@@ -1,8 +1,6 @@
 open Base
 
 exception No_local_scope
-exception Duplicate_declaration of string
-exception Unbound_symbol of string
 
 type decl =
   | Var of
@@ -63,17 +61,13 @@ let fetch_decl env name =
        | None -> fetch_from_scopes tl)
   in
   match fetch_from_scopes env.locals with
-  | Some decl -> decl
-  | None ->
-    (match Map.find env.global name with
-     | Some decl -> decl
-     | None -> raise (Unbound_symbol ("The symbol " ^ name ^ " is unbound")))
+  | Some decl -> Some decl
+  | None -> Map.find env.global name
 
 let struct_entries env name =
-  try match fetch_decl env name with
-  | Struct_type (Struct (_, entries)) -> entries
+  match fetch_decl env name with
+  | Some (Struct_type (Struct (_, entries))) -> entries
   | _ -> []
-  with Unbound_symbol _ -> []
 
 let push_scope env =
   { env with locals = Map.empty (module String) :: env.locals }

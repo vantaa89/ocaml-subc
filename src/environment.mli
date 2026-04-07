@@ -1,6 +1,4 @@
 exception No_local_scope
-exception Duplicate_declaration of string
-exception Unbound_symbol of string
 
 type decl =
   | Var of
@@ -24,7 +22,7 @@ val empty : t
 
 val declare_global : t -> string -> decl -> t
 val declare_local : t -> string -> decl -> t
-val fetch_decl : t -> string -> decl
+val fetch_decl : t -> string -> decl option
 val struct_entries : t -> string -> Type_system.entry list
 
 val push_scope : t -> t
