@@ -18,7 +18,7 @@ exception Incompatible_arguments
 exception Break_outside_loop
 exception Continue_outside_loop
 
-val check_program : on_exn:[`Abort] -> Ast.program -> Environment.t * (int * exn) list
+val check_program : Ast.program -> Environment.t * (int * exn) list
 val check_statement: Environment.t -> Ast.statement -> Environment.t * (int * exn) list
 
 val type_of_expr: Environment.t -> Ast.expr -> Type_system.t

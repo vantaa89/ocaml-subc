@@ -242,7 +242,6 @@ let rec check_statement env stmt =
       let env = Environment.pop_func_frame env in
       (env, body_error_list)
   | Expr expr -> (env, tag (check_expr env expr))
-  (* 3.5 Return type check *)
   | Return expr ->
     let expr_errors = tag (check_expr env expr) in
     let return_errors = match Environment.current_func_decl env with
@@ -303,7 +302,7 @@ let rec check_statement env stmt =
     let (_scope, env) = Environment.pop_scope env in
     (env, errors)
 
-let check_program ~on_exn:`Abort program =
+let check_program program =
   let env = Environment.empty in
   List.fold program ~init:(env, [])
   ~f:(fun (env, errors) stmt ->
