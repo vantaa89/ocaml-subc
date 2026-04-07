@@ -43,6 +43,7 @@ let comparable lhs rhs =
   (equal lhs Char && equal rhs Char) ||
   (match lhs, rhs with
    | Pointer a, Pointer b -> equal a b
+   | Pointer _, Null | Null, Pointer _ -> true
    | _ -> false)
 
 let assignable lhs rhs =
