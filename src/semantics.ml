@@ -116,7 +116,8 @@ let rec check_expr env expr =
       | Neg | Not ->
         if not (Type_system.equal ty Int) then [Invalid_unary_operand] else []
       | Pre_inc | Pre_dec ->
-        if not (Type_system.equal ty Int || Type_system.equal ty Char)
+        if not (Ast.is_lvalue inner) then [Invalid_unary_operand]
+        else if not (Type_system.equal ty Int || Type_system.equal ty Char)
         then [Invalid_unary_operand] else []
       | Deref ->
         (match ty with Pointer _ -> [] | _ -> [Indirection_requires_pointer])
@@ -140,7 +141,7 @@ let rec check_expr env expr =
     let arr_ty = type_of_expr env arr in
     let idx_ty = type_of_expr env idx in
     let arr_error = match arr_ty with
-      | Array _  -> []
+      | Array _ -> []
       | _ -> [Not_an_array]
     in
     let idx_error =
