@@ -1,10 +1,12 @@
 let emit_log = ref false
 let emit_ast = ref false
+let emit_source = ref false
 let check_only = ref false
 let () =
   Arg.parse
     [ "--emit-reduction-log", Arg.Set emit_log, "Print the reduction log" ;
       "--emit-ast", Arg.Set emit_ast, "Print the parsed AST" ;
+      "--emit-source", Arg.Set emit_source, "Print the program as source code" ;
       "--check", Arg.Set check_only, "Run semantic analysis only" ]
     (fun _ -> ())
     "subc [options] < input";
@@ -17,6 +19,10 @@ let () =
     |> Ast.sexp_of_program
     |> Sexplib.Sexp.to_string_hum
     |> print_endline;
+    exit 0
+  end;
+  if !emit_source then begin
+    print_string (Ast.string_of_program ast);
     exit 0
   end;
   if !check_only then begin
