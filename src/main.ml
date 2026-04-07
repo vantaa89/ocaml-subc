@@ -21,9 +21,8 @@ let () =
   end;
   if !check_only then begin
     let (_env, errors) = Semantics.check_program ast in
-    let errors = List.rev errors in
     ignore (List.fold_left (fun last_line_no (line, e) ->
-      if line <> last_line_no then    (* emit only the first error of each line *)
+      if line <> last_line_no then
         Printf.printf "%d: %s\n" line (Semantics.string_of_error e);
       line)
       (-1)

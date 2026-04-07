@@ -12,5 +12,6 @@
 (executable
  (name main)
  (modules main)
- (libraries base stdio subc))
+ (libraries core core_unix.command_unix subc)
+ (preprocess (pps ppx_jane)))
 

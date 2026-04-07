@@ -346,10 +346,12 @@ let rec check_statement env stmt =
 
 let check_program program =
   let env = Environment.empty in
-  List.fold program ~init:(env, [])
-  ~f:(fun (env, errors) stmt ->
-    let (env', new_errors) = check_statement env stmt in
-    (env', new_errors @ errors))
+  let (env, errors) = List.fold program ~init:(env, [])
+    ~f:(fun (env, errors) stmt ->
+      let (env', new_errors) = check_statement env stmt in
+      (env', new_errors @ errors))
+  in
+  (env, List.rev errors)
 
 let string_of_error = function
   | Unbound_symbol _ -> "error: use of undeclared identifier"
