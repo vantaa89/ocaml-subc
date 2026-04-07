@@ -107,7 +107,7 @@ let rec check_expr env expr =
       | Lt | Le | Gt | Ge | Eq | Ne ->
         if not (Type_system.comparable lhs_ty rhs_ty) then [Not_comparable] else []
     in
-    sub_errors @ op_error
+    op_error @ sub_errors
 
   | Ast.Unary (op, inner) ->
     let sub_errors = check_expr env inner in
@@ -125,7 +125,7 @@ let rec check_expr env expr =
         if not (Ast.is_lvalue inner) then [Rvalue_address]
         else (match ty with Array _ -> [Rvalue_address] | _ -> [])
     in
-    sub_errors @ op_error
+    op_error @ sub_errors
 
   | Ast.Postfix (_op, inner) ->
     let sub_errors = check_expr env inner in
@@ -134,7 +134,7 @@ let rec check_expr env expr =
       if not (Type_system.equal ty Int || Type_system.equal ty Char)
       then [Invalid_unary_operand] else []
     in
-    sub_errors @ op_error
+    op_error @ sub_errors
 
   | Ast.Index (arr, idx) ->
     let sub_errors = check_expr env idx @ check_expr env arr in
@@ -147,7 +147,7 @@ let rec check_expr env expr =
     let idx_error =
       if not (Type_system.equal idx_ty Int) then [Subscript_not_integer] else []
     in
-    sub_errors @ idx_error @ arr_error
+    arr_error @ idx_error @ sub_errors
 
   | Ast.Field (expr, name) ->
     let sub_errors = check_expr env expr in
@@ -157,7 +157,7 @@ let rec check_expr env expr =
         then [] else [No_such_member]
       | _ -> [Not_a_struct]
     in
-    sub_errors @ field_errors
+    field_errors @ sub_errors
 
   | Ast.Ptr_field (expr, name) ->
     let sub_errors = check_expr env expr in
@@ -167,7 +167,7 @@ let rec check_expr env expr =
         then [] else [No_such_member]
       | _ -> [Not_a_struct_pointer]
     in
-    sub_errors @ field_errors
+    field_errors @ sub_errors
 
   | Ast.Call (func_expr, args) ->
     let func_errors = check_expr env func_expr in
@@ -186,7 +186,7 @@ let rec check_expr env expr =
          | None -> [])
       | _ -> []
     in
-    args_errors @ func_errors @ call_errors
+    call_errors @ func_errors @ args_errors
 
   | Ast.Identifier name ->
     (match Environment.fetch_decl env name with
