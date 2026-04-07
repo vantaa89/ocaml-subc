@@ -49,4 +49,5 @@ let assignable lhs rhs =
   equal lhs rhs ||
   match lhs, rhs with
   | Pointer _, Null -> true
+  | Array (t1, _), Array (t2, _) when t1 = t2 -> true
   | _ -> false
