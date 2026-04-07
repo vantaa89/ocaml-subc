@@ -145,7 +145,7 @@ let rec check_expr env expr =
     let arr_ty = type_of_expr env arr in
     let idx_ty = type_of_expr env idx in
     let arr_error = match arr_ty with
-      | Array _ | Pointer _ -> []
+      | Array _ -> []
       | _ -> [Not_an_array]
     in
     let idx_error =
