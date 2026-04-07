@@ -31,6 +31,7 @@ val pop_scope : t -> scope * t
 val decl_of_ast : Ast.decl_statement -> decl
 
 val is_declared_global : t -> string -> bool
+val is_func : t -> string -> bool
 val is_struct_defined : t -> Type_system.t -> bool
 val is_declared_current_scope : t -> string -> bool
 

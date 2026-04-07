@@ -81,6 +81,11 @@ let pop_scope env =
 let is_declared_global env name =
   Option.is_some (Map.find env.global name)
 
+let is_func env name =
+  match fetch_decl env name with
+  | Some (Func _) -> true
+  | _ -> false
+
 let is_struct_defined env = function
   | Type_system.Struct_ref name -> is_declared_global env name
   | _ -> true

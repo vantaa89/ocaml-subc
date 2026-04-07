@@ -82,7 +82,11 @@ let rec check_expr env expr =
   | Ast.Assign (lhs, rhs) ->
     let sub_errors = check_expr env rhs @ check_expr env lhs in
     let assign_error =
-      if not (Ast.is_lvalue lhs) then
+      let is_func_name = match lhs with
+        | Ast.Identifier name -> Environment.is_func env name
+        | _ -> false
+      in
+      if not (Ast.is_lvalue lhs) || is_func_name then
         [Lvalue_not_assignable]
       else
         let lhs_ty = type_of_expr env lhs in
@@ -212,7 +216,7 @@ let rec check_statement env stmt =
       (env, [(line, Duplicate_declaration decl.name)])
     else
       let env = match decl.type_ with
-        | Struct (sname, _) when not (Environment.is_declared_global env sname) ->    (* For struct declaration, always declare globally *)
+        | Struct (sname, _) when not (Environment.is_declared_global env sname) ->    (* always declare structs globally *)
           Environment.declare_global env sname (Environment.Struct_type decl.type_)
         | _ -> env
       in
