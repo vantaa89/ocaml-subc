@@ -202,19 +202,31 @@ let rec check_statement env stmt =
   | Global_decl decl ->
     if Environment.is_declared_global env decl.name then
       (env, [(line, Duplicate_declaration decl.name)])
-    else if not (Environment.is_struct_defined env decl.type_) then
-      (env, [(line, Incomplete_type)])
     else
-      let env = Environment.declare_global env decl.name (Environment.decl_of_ast decl) in
-      (env, [])
+      let env = match decl.type_ with
+        | Struct (sname, _) when not (Environment.is_declared_global env sname) ->
+          Environment.declare_global env sname (Environment.Struct_type decl.type_)
+        | _ -> env
+      in
+      if not (Environment.is_struct_defined env decl.type_) then
+        (env, [(line, Incomplete_type)])
+      else
+        let env = Environment.declare_global env decl.name (Environment.decl_of_ast decl) in
+        (env, [])
   | Local_decl decl ->
     if Environment.is_declared_current_scope env decl.name then
       (env, [(line, Duplicate_declaration decl.name)])
-    else if not (Environment.is_struct_defined env decl.type_) then
-      (env, [(line, Incomplete_type)])
     else
-      let env = Environment.declare_local env decl.name (Environment.decl_of_ast decl) in
-      (env, [])
+      let env = match decl.type_ with
+        | Struct (sname, _) when not (Environment.is_declared_global env sname) ->
+          Environment.declare_global env sname (Environment.Struct_type decl.type_)
+        | _ -> env
+      in
+      if not (Environment.is_struct_defined env decl.type_) then
+        (env, [(line, Incomplete_type)])
+      else
+        let env = Environment.declare_local env decl.name (Environment.decl_of_ast decl) in
+        (env, [])
   | Struct_def (name, fields) ->
     if Environment.is_declared_global env name then
       (env, [(line, Duplicate_declaration name)])
