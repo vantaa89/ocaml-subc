@@ -250,10 +250,14 @@ let rec check_statement env stmt =
     if Environment.is_declared_global env name then
       (env, [(line, Duplicate_declaration name)])
     else
-      let param_errors = List.filter_map func_decl.params ~f:(fun (p : Ast.decl_statement) ->
-        if not (Environment.is_struct_defined env p.type_) then
-          Some (p.line, Incomplete_type)
-        else None)
+      let (_, param_errors) = List.fold func_decl.params ~init:(Set.empty (module String), [])
+        ~f:(fun (seen, errs) (p : Ast.decl_statement) ->
+          if Set.mem seen p.name then
+            (seen, (p.line, Duplicate_declaration p.name) :: errs)
+          else if not (Environment.is_struct_defined env p.type_) then
+            (Set.add seen p.name, (p.line, Incomplete_type) :: errs)
+          else
+            (Set.add seen p.name, errs))
       in
       let func_decl = Environment.Func {
         return_type = Type_system.wrap_pointer func_decl.return_type func_decl.pointer_depth;
