@@ -61,12 +61,12 @@ ext_def_list
 ext_def
   : type_specifier pointers ID SEMI                      {
       print_log "ext_def->type_specifier pointers ID ';'";
-      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Global_decl { type_ = $1; pointer_depth = $2; name = $3; array_size = None } }
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Global_decl { line = $startpos.Lexing.pos_lnum; type_ = $1; pointer_depth = $2; name = $3; array_size = None } }
     }
   | type_specifier pointers ID LBRACKET INTEGER_CONST RBRACKET SEMI
                                                          {
       print_log "ext_def->type_specifier pointers ID '[' INTEGER_CONST ']' ';'";
-      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Global_decl { type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 } }
+      Ast.{ line = $startpos.Lexing.pos_lnum; kind = Global_decl { line = $startpos.Lexing.pos_lnum; type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 } }
     }
   | struct_specifier SEMI                                {
       print_log "ext_def->struct_specifier ';'";
@@ -133,12 +133,12 @@ param_list
 param_decl
   : type_specifier pointers ID                           {
       print_log "param_decl->type_specifier pointers ID";
-      Ast.({ type_ = $1; pointer_depth = $2; name = $3; array_size = None })
+      Ast.({ line = $startpos.Lexing.pos_lnum; type_ = $1; pointer_depth = $2; name = $3; array_size = None })
     }
   | type_specifier pointers ID LBRACKET INTEGER_CONST RBRACKET
                                                          {
       print_log "param_decl->type_specifier pointers ID '[' INTEGER_CONST ']'";
-      Ast.({ type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 })
+      Ast.({ line = $startpos.Lexing.pos_lnum; type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 })
     }
   ;
 
@@ -156,17 +156,17 @@ def_list
 def
   : type_specifier pointers ID SEMI                      {
       print_log "def->type_specifier pointers ID ';'";
-      Ast.({ type_ = $1; pointer_depth = $2; name = $3; array_size = None })
+      Ast.({ line = $startpos.Lexing.pos_lnum; type_ = $1; pointer_depth = $2; name = $3; array_size = None })
     }
   | type_specifier pointers ID LBRACKET INTEGER_CONST RBRACKET SEMI
                                                          {
       print_log "def->type_specifier pointers ID '[' INTEGER_CONST ']' ';'";
-      Ast.({ type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 })
+      Ast.({ line = $startpos.Lexing.pos_lnum; type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 })
     }
   | STRUCT ID LBRACE def_list RBRACE pointers ID SEMI    {
       print_log "def->STRUCT ID '{' def_list '}' pointers ID ';'";
       let entries = List.rev_map Ast.entry_of_decl $4 in
-      Ast.({ type_ = Type_system.Struct ($2, entries); pointer_depth = $6; name = $7; array_size = None })
+      Ast.({ line = $startpos.Lexing.pos_lnum; type_ = Type_system.Struct ($2, entries); pointer_depth = $6; name = $7; array_size = None })
     }
   ;
 

@@ -214,16 +214,25 @@ let rec check_statement env stmt =
     if Environment.is_declared_global env name then
       (env, [(line, Duplicate_declaration name)])
     else
-      let env = List.fold fields ~init:env ~f:(fun env (field : Ast.decl_statement) ->
+      let check_field env (field : Ast.decl_statement) =
         match field.type_ with
-        | Struct (inner_name, _ :: _) ->
-          Environment.declare_global env inner_name (Environment.Struct_type field.type_)
-        | _ -> env)
+        | Struct (inner_name, []) ->
+          if Environment.is_declared_global env inner_name then (env, [])
+          else (env, [(field.line, Incomplete_type)])
+        | Struct (inner_name, _) ->
+          if Environment.is_declared_global env inner_name then
+            (env, [(field.line, Duplicate_declaration inner_name)])
+          else
+            (Environment.declare_global env inner_name (Environment.Struct_type field.type_), [])
+        | _ -> (env, [])
       in
-      let struct_entry_list = List.map fields ~f:Ast.entry_of_decl in
-      let struct_type = Type_system.Struct (name, struct_entry_list) in
+      let (env, field_errors) = List.fold fields ~init:(env, []) ~f:(fun (env, errs) field ->
+        let (env, new_errs) = check_field env field in
+        (env, new_errs @ errs))
+      in
+      let struct_type = Type_system.Struct (name, List.map fields ~f:Ast.entry_of_decl) in
       let env = Environment.declare_global env name (Environment.Struct_type struct_type) in
-      (env, [])
+      (env, field_errors)
   | Func_def (func_decl, body) ->
     let name = func_decl.name in
     if Environment.is_declared_global env name then

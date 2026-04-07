@@ -20,7 +20,7 @@ let () =
     exit 0
   end;
   if !check_only then begin
-    let (_env, errors) = Semantics.check_program ~on_exn:`Abort ast in
+    let (_env, errors) = Semantics.check_program ast in
     let errors = List.rev errors in
     ignore (List.fold_left (fun last_line_no (line, e) ->
       if line <> last_line_no then

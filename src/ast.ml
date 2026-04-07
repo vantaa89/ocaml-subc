@@ -47,7 +47,8 @@ type expr =
 [@@deriving sexp_of]
 
 type decl_statement =
-  { type_ : Type_system.t
+  { line : int
+  ; type_ : Type_system.t
   ; pointer_depth : int
   ; name : string
   ; array_size : int option
@@ -90,7 +91,7 @@ let is_lvalue = function
   | Unary (Deref, _) -> true
   | _ -> false
 
-let entry_of_decl { type_; pointer_depth; name; array_size } =
+let entry_of_decl { type_; pointer_depth; name; array_size; _ } =
   let entry_type = Type_system.wrap_pointer type_ pointer_depth in
   match array_size with
   | None -> Type_system.{ entry_name = name; entry_type }
