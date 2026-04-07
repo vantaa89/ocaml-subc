@@ -69,7 +69,7 @@ Semantic analysis tests
   267: error: invalid operands to binary expression
   289: error: incompatible arguments in function call
   290: error: incompatible arguments in function call
-  292: error: incompatible arguments in function call
+  291: error: incompatible arguments in function call
   295: error: incompatible arguments in function call
   296: error: incompatible arguments in function call
   299: error: not a function
@@ -109,6 +109,7 @@ Semantic analysis tests
   336: error: array subscript is not an integer
   339: error: incompatible arguments in function call
   341: error: incompatible return types
+  344: error: break statement not in loop
   [1]
 
   $ ../../src/main.exe --check < expr.c
