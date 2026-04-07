@@ -3,7 +3,7 @@ let emit_ast = ref false
 let check_only = ref false
 let () =
   Arg.parse
-    [ "--emit-log", Arg.Set emit_log, "Print the reduction log" ;
+    [ "--emit-reduction-log", Arg.Set emit_log, "Print the reduction log" ;
       "--emit-ast", Arg.Set emit_ast, "Print the parsed AST" ;
       "--check", Arg.Set check_only, "Run semantic analysis only" ]
     (fun _ -> ())

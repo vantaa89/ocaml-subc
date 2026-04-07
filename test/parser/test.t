@@ -1,6 +1,6 @@
 Parser regression tests
 
-  $ ../../src/main.exe --emit-log < arrays.c
+  $ ../../src/main.exe --emit-reduction-log < arrays.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -199,7 +199,7 @@ Parser regression tests
   ext_def_list->ext_def_list ext_def
   program->ext_def_list
 
-  $ ../../src/main.exe --emit-log < basic_types.c
+  $ ../../src/main.exe --emit-reduction-log < basic_types.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -254,7 +254,7 @@ Parser regression tests
   ext_def_list->ext_def_list ext_def
   program->ext_def_list
 
-  $ ../../src/main.exe --emit-log < comprehensive.c
+  $ ../../src/main.exe --emit-reduction-log < comprehensive.c
   ext_def_list->epsilon
   def_list->epsilon
   type_specifier->TYPE
@@ -774,7 +774,7 @@ Parser regression tests
   ext_def_list->ext_def_list ext_def
   program->ext_def_list
 
-  $ ../../src/main.exe --emit-log < control_flow.c
+  $ ../../src/main.exe --emit-reduction-log < control_flow.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -945,7 +945,7 @@ Parser regression tests
   ext_def_list->ext_def_list ext_def
   program->ext_def_list
 
-  $ ../../src/main.exe --emit-log < functions.c
+  $ ../../src/main.exe --emit-reduction-log < functions.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -1096,7 +1096,7 @@ Parser regression tests
   ext_def_list->ext_def_list ext_def
   program->ext_def_list
 
-  $ ../../src/main.exe --emit-log < invalid_features.c
+  $ ../../src/main.exe --emit-reduction-log < invalid_features.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -1113,7 +1113,7 @@ Parser regression tests
   ext_def_list->ext_def_list ext_def
   program->ext_def_list
 
-  $ ../../src/main.exe --emit-log < nested_comments.c
+  $ ../../src/main.exe --emit-reduction-log < nested_comments.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -1141,7 +1141,7 @@ Parser regression tests
   ext_def_list->ext_def_list ext_def
   program->ext_def_list
 
-  $ ../../src/main.exe --emit-log < pointers.c
+  $ ../../src/main.exe --emit-reduction-log < pointers.c
   ext_def_list->epsilon
   type_specifier->TYPE
   pointers->epsilon
@@ -1258,7 +1258,7 @@ Parser regression tests
   ext_def_list->ext_def_list ext_def
   program->ext_def_list
 
-  $ ../../src/main.exe --emit-log < structs.c
+  $ ../../src/main.exe --emit-reduction-log < structs.c
   ext_def_list->epsilon
   def_list->epsilon
   type_specifier->TYPE
