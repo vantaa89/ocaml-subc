@@ -69,6 +69,12 @@ let fetch_decl env name =
      | Some decl -> decl
      | None -> raise (Unbound_symbol ("The symbol " ^ name ^ " is unbound")))
 
+let struct_entries env name =
+  try match fetch_decl env name with
+  | Struct_type (Struct (_, entries)) -> entries
+  | _ -> []
+  with Unbound_symbol _ -> []
+
 let push_scope env =
   { env with locals = Map.empty (module String) :: env.locals }
 

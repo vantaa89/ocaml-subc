@@ -30,12 +30,6 @@ exception Incompatible_arguments
 exception Break_outside_loop
 exception Continue_outside_loop
 
-let struct_entries env name =
-  try match Environment.fetch_decl env name with
-  | Environment.Struct_type (Struct (_, entries)) -> entries
-  | _ -> []
-  with Environment.Unbound_symbol _ -> []
-
 let rec type_of_expr env expr =
   match expr with
   | Ast.Assign (lhs, _rhs) -> type_of_expr env lhs
@@ -61,14 +55,14 @@ let rec type_of_expr env expr =
   | Ast.Field (expr, name) ->
     (match type_of_expr env expr with
      | Struct (sname, _) ->
-       (match List.find (struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name) with
+       (match List.find (Environment.struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name) with
         | Some e -> e.entry_type
         | None -> Int)
      | _ -> Int)
   | Ast.Ptr_field (expr, name) ->
     (match type_of_expr env expr with
      | Pointer (Struct (sname, _)) ->
-       (match List.find (struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name) with
+       (match List.find (Environment.struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name) with
         | Some e -> e.entry_type
         | None -> Int)
      | _ -> Int)
@@ -167,7 +161,7 @@ let rec check_expr env expr =
     let sub_errors = check_expr env expr in
     let field_errors = match type_of_expr env expr with
       | Struct (sname, _) ->
-        if List.exists (struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name)
+        if List.exists (Environment.struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name)
         then [] else [No_such_member]
       | _ -> [Not_a_struct]
     in
@@ -177,7 +171,7 @@ let rec check_expr env expr =
     let sub_errors = check_expr env expr in
     let field_errors = match type_of_expr env expr with
       | Pointer (Struct (sname, _)) ->
-        if List.exists (struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name)
+        if List.exists (Environment.struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name)
         then [] else [No_such_member]
       | _ -> [Not_a_struct_pointer]
     in

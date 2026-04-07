@@ -25,6 +25,7 @@ val empty : t
 val declare_global : t -> string -> decl -> t
 val declare_local : t -> string -> decl -> t
 val fetch_decl : t -> string -> decl
+val struct_entries : t -> string -> Type_system.entry list
 
 val push_scope : t -> t
 val pop_scope : t -> scope * t
