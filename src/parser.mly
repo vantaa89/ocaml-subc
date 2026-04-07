@@ -163,6 +163,11 @@ def
       print_log "def->type_specifier pointers ID '[' INTEGER_CONST ']' ';'";
       Ast.({ type_ = $1; pointer_depth = $2; name = $3; array_size = Some $5 })
     }
+  | STRUCT ID LBRACE def_list RBRACE pointers ID SEMI    {
+      print_log "def->STRUCT ID '{' def_list '}' pointers ID ';'";
+      let entries = List.rev_map Ast.entry_of_decl $4 in
+      Ast.({ type_ = Type_system.Struct ($2, entries); pointer_depth = $6; name = $7; array_size = None })
+    }
   ;
 
 compound_stmt

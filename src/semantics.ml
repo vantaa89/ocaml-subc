@@ -30,6 +30,12 @@ exception Incompatible_arguments
 exception Break_outside_loop
 exception Continue_outside_loop
 
+let struct_entries env name =
+  try match Environment.fetch_decl env name with
+  | Environment.Struct_type (Struct (_, entries)) -> entries
+  | _ -> []
+  with Environment.Unbound_symbol _ -> []
+
 let rec type_of_expr env expr =
   match expr with
   | Ast.Assign (lhs, _rhs) -> type_of_expr env lhs
@@ -54,15 +60,15 @@ let rec type_of_expr env expr =
      | ty -> ty)
   | Ast.Field (expr, name) ->
     (match type_of_expr env expr with
-     | Struct (_, entries) ->
-       (match List.find entries ~f:(fun e -> String.equal e.entry_name name) with
+     | Struct (sname, _) ->
+       (match List.find (struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name) with
         | Some e -> e.entry_type
         | None -> Int)
      | _ -> Int)
   | Ast.Ptr_field (expr, name) ->
     (match type_of_expr env expr with
-     | Pointer (Struct (_, entries)) ->
-       (match List.find entries ~f:(fun e -> String.equal e.entry_name name) with
+     | Pointer (Struct (sname, _)) ->
+       (match List.find (struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name) with
         | Some e -> e.entry_type
         | None -> Int)
      | _ -> Int)
@@ -95,6 +101,7 @@ let rec check_expr env expr =
         [Lvalue_not_assignable]
       else
         let lhs_ty = type_of_expr env lhs in
+        match lhs_ty with Array _ -> [Lvalue_not_assignable] | _ ->
         let rhs_ty = type_of_expr env rhs in
         if Type_system.equal rhs_ty Null then
           (match lhs_ty with Pointer _ -> [] | _ -> [Null_to_non_pointer])
@@ -102,7 +109,7 @@ let rec check_expr env expr =
           [Incompatible_assignment]
         else []
     in
-    sub_errors @ assign_error
+    assign_error @ sub_errors
 
   | Ast.Binary (op, lhs, rhs) ->
     let sub_errors = check_expr env rhs @ check_expr env lhs in
@@ -129,7 +136,8 @@ let rec check_expr env expr =
       | Deref ->
         (match ty with Pointer _ -> [] | _ -> [Indirection_requires_pointer])
       | Addr_of ->
-        if not (Ast.is_lvalue inner) then [Rvalue_address] else []
+        if not (Ast.is_lvalue inner) then [Rvalue_address]
+        else (match ty with Array _ -> [Rvalue_address] | _ -> [])
     in
     sub_errors @ op_error
 
@@ -158,8 +166,8 @@ let rec check_expr env expr =
   | Ast.Field (expr, name) ->
     let sub_errors = check_expr env expr in
     let field_errors = match type_of_expr env expr with
-      | Struct (_, entries) ->
-        if List.exists entries ~f:(fun e -> String.equal e.entry_name name)
+      | Struct (sname, _) ->
+        if List.exists (struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name)
         then [] else [No_such_member]
       | _ -> [Not_a_struct]
     in
@@ -168,8 +176,8 @@ let rec check_expr env expr =
   | Ast.Ptr_field (expr, name) ->
     let sub_errors = check_expr env expr in
     let field_errors = match type_of_expr env expr with
-      | Pointer (Struct (_, entries)) ->
-        if List.exists entries ~f:(fun e -> String.equal e.entry_name name)
+      | Pointer (Struct (sname, _)) ->
+        if List.exists (struct_entries env sname) ~f:(fun e -> String.equal e.entry_name name)
         then [] else [No_such_member]
       | _ -> [Not_a_struct_pointer]
     in
@@ -220,6 +228,12 @@ let rec check_statement env stmt =
     if Environment.is_declared_global env name then
       (env, [(line, Environment.Duplicate_declaration name)])
     else
+      let env = List.fold fields ~init:env ~f:(fun env (field : Ast.decl_statement) ->
+        match field.type_ with
+        | Struct (inner_name, _ :: _) ->
+          Environment.declare_global env inner_name (Environment.Struct_type field.type_)
+        | _ -> env)
+      in
       let struct_entry_list = List.map fields ~f:Ast.entry_of_decl in
       let struct_type = Type_system.Struct (name, struct_entry_list) in
       let env = Environment.declare_global env name (Environment.Struct_type struct_type) in
@@ -230,7 +244,7 @@ let rec check_statement env stmt =
       (env, [(line, Environment.Duplicate_declaration name)])
     else
       let func_decl = Environment.Func {
-        return_type = func_decl.return_type;
+        return_type = Type_system.wrap_pointer func_decl.return_type func_decl.pointer_depth;
         params = List.map func_decl.params ~f:Ast.entry_of_decl
       } in
       let env = Environment.declare_global env name func_decl in
@@ -311,8 +325,8 @@ let check_program ~on_exn:`Abort program =
     (env', new_errors @ errors))
 
 let string_of_error = function
-  | Environment.Unbound_symbol var -> ("error: The symbol " ^ var ^ " is unbound")
-  | Environment.Duplicate_declaration var -> ("error: redeclaration of " ^ var)
+  | Environment.Unbound_symbol _ -> "error: use of undeclared identifier"
+  | Environment.Duplicate_declaration _ -> "error: redeclaration"
   | Lvalue_not_assignable -> "error: lvalue is not assignable"
   | Null_to_non_pointer -> "error: cannot assign 'NULL' to non-pointer type"
   | Incompatible_assignment -> "error: incompatible types for assignment operation"

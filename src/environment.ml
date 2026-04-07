@@ -52,7 +52,6 @@ let declare_local env name decl =
   match env.locals with
   | [] -> raise No_local_scope
   | hd :: tl ->
-    if Map.mem hd name then raise (Duplicate_declaration name);
     { env with locals = Map.set hd ~key:name ~data:decl :: tl }
 
 let fetch_decl env name =
