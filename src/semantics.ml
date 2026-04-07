@@ -236,7 +236,7 @@ let rec check_statement env stmt =
         match field.type_ with
         | Struct_ref inner_name ->
           if Environment.is_declared_global env inner_name then (env, [])
-          else if field.pointer_depth > 0 && String.equal inner_name name then (env, [])
+          else if field.pointer_depth > 0 && String.equal inner_name name then (env, [])    (* Allow pointers to the structure being declared *)
           else (env, [(field.line, Incomplete_type)])
         | Struct (inner_name, _) ->
           if Environment.is_declared_global env inner_name then

@@ -91,8 +91,6 @@ Semantic analysis tests
   390: error: subscripted value is not an array
   391: error: subscripted value is not an array
   402: error: use of undeclared identifier
-  403: error: indirection requires pointer operand
-  404: error: use of undeclared identifier
   [1]
 
   $ ../../src/main.exe --check < complex_test_1.c
