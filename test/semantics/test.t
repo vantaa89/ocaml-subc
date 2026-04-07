@@ -86,7 +86,6 @@ Semantic analysis tests
   366: error: invalid argument type to unary expression
   382: error: incompatible types for assignment operation
   383: error: array subscript is not an integer
-  386: error: subscripted value is not an array
   386: error: array subscript is not an integer
   387: error: array subscript is not an integer
   390: error: subscripted value is not an array
@@ -100,7 +99,6 @@ Semantic analysis tests
   123: error: incompatible types for assignment operation
   124: error: subscripted value is not an array
   125: error: subscripted value is not an array
-  244: error: incompatible types for assignment operation
   291: error: incompatible types for assignment operation
   317: error: redeclaration
   319: error: use of undeclared identifier
